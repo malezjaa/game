@@ -1,13 +1,11 @@
 pub mod player;
 pub mod menu;
 mod screen;
+mod text;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crate::menu::{menu_plugin, setup_menu, GameState};
-
-pub const TEXT_COLOR: Color = Color::srgb(0.0, 0.0, 0.0);
-
 
 fn main() {
     App::new()

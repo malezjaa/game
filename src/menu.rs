@@ -1,7 +1,7 @@
 use bevy::{app::AppExit, color::palettes::css::CRIMSON, prelude::*};
 use bevy::color::palettes::css::{BLACK, SLATE_GRAY};
 use crate::screen::despawn_screen;
-use crate::TEXT_COLOR;
+use crate::text::{text_bundle, TEXT_COLOR};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
@@ -159,14 +159,10 @@ fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 })
                 .with_children(|parent| {
                     parent.spawn(
-                        TextBundle::from_section(
-                            "Main Menu",
-                            TextStyle {
-                                font_size: 65.0,
-                                color: TEXT_COLOR,
-                                ..default()
-                            },
-                        )
+                        text_bundle("Main Menu", &asset_server, TextStyle {
+                            font_size: 65.0,
+                            ..default()
+                        })
                             .with_style(Style {
                                 margin: UiRect::all(Val::Px(60.0)),
                                 ..default()
@@ -194,10 +190,9 @@ fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                             image: UiImage::new(icon),
                             ..default()
                         });
-                        parent.spawn(TextBundle::from_section(
-                            "New Game",
-                            button_text_style.clone(),
-                        ));
+                        parent.spawn(
+                            text_bundle("Play", &asset_server, button_text_style.clone())
+                        );
                     });
                 });
         });
