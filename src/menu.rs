@@ -10,8 +10,8 @@ pub enum GameState {
     Game,
 }
 
-pub fn setup_menu(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+pub fn setup_camera(mut commands: Commands) {
+    commands.spawn(Camera2d::default());
 }
 
 
@@ -21,7 +21,6 @@ pub fn menu_plugin(app: &mut App) {
         .add_systems(OnEnter(GameState::Menu), menu_setup)
         .add_systems(OnEnter(MenuState::Main), main_menu_setup)
         .add_systems(OnExit(MenuState::Main), despawn_screen::<OnMainMenuScreen>)
-        .add_systems(OnEnter(MenuState::Settings), settings_menu_setup)
         .add_systems(
             OnExit(MenuState::Settings),
             despawn_screen::<OnSettingsMenuScreen>,
@@ -111,156 +110,79 @@ fn menu_setup(mut menu_state: ResMut<NextState<MenuState>>) {
 }
 
 fn main_menu_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let button_icon_style = Style {
+    let button_icon_style = Node {
         width: Val::Px(30.0),
         position_type: PositionType::Absolute,
         left: Val::Px(10.0),
         ..default()
     };
 
-    let button_text_style = TextStyle {
+    let button_text_style = TextFont {
         font_size: 40.0,
-        color: TEXT_COLOR,
         ..default()
     };
 
     commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-
-                background_color: Srgba::new(51.0, 51.0, 60.0, 0.0).into(),
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
                 ..default()
             },
+            BackgroundColor(Srgba::new(51.0, 51.0, 60.0, 0.0).into()),
             OnMainMenuScreen,
         ))
         .with_children(|parent| {
             parent
-                .spawn(ImageBundle {
-                    style: Style {
-                        width: Val::Percent(50.0),
-                        height: Val::Percent(50.0),
-                        justify_content: JustifyContent::Center,
-                        flex_direction: FlexDirection::Column,
-                        display: Display::Flex,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    image: UiImage::new(
-                        asset_server.load("blank.png"),
-                    ),
+                .spawn((UiImage {
+                    image: asset_server.load("blank.png"),
                     ..default()
-                })
+                }, Node {
+                    width: Val::Percent(50.0),
+                    height: Val::Percent(50.0),
+                    justify_content: JustifyContent::Center,
+                    flex_direction: FlexDirection::Column,
+                    display: Display::Flex,
+                    align_items: AlignItems::Center,
+                    ..default()
+                }))
                 .with_children(|parent| {
                     parent.spawn(
-                        text_bundle("Main Menu", &asset_server, TextStyle {
+                        text_bundle("Main Menu", &asset_server, (TextFont {
                             font_size: 65.0,
                             ..default()
-                        })
-                            .with_style(Style {
-                                margin: UiRect::all(Val::Px(60.0)),
+                        }, Node {
+                            margin: UiRect {
+                                bottom: Val::Px(20.0),
                                 ..default()
-                            }),
+                            },
+                            ..default()
+                        }))
                     );
 
                     parent.spawn(
-                        (ButtonBundle {
-                            style: Style {
-                                width: Val::Px(200.0),
-                                height: Val::Px(65.0),
-                                margin: UiRect::all(Val::Px(20.0)),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..default()
-                            },
+                        (Button {}, Node {
+                            width: Val::Px(200.0),
+                            height: Val::Px(65.0),
+                            margin: UiRect::all(Val::Px(20.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
                             ..default()
                         },
                          MenuButtonAction::Play
                         )
                     ).with_children(|parent| {
                         let icon = asset_server.load("textures/Game Icons/right.png");
-                        parent.spawn(ImageBundle {
-                            style: button_icon_style.clone(),
-                            image: UiImage::new(icon),
+                        parent.spawn((UiImage {
+                            image: icon,
                             ..default()
-                        });
+                        }, button_icon_style));
                         parent.spawn(
                             text_bundle("Play", &asset_server, button_text_style.clone())
                         );
                     });
-                });
-        });
-}
-
-fn settings_menu_setup(mut commands: Commands) {
-    let button_style = Style {
-        width: Val::Px(200.0),
-        height: Val::Px(65.0),
-        margin: UiRect::all(Val::Px(20.0)),
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
-        ..default()
-    };
-
-    let button_text_style = TextStyle {
-        font_size: 40.0,
-        color: TEXT_COLOR,
-        ..default()
-    };
-
-    commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
-                ..default()
-            },
-            OnSettingsMenuScreen,
-        ))
-        .with_children(|parent| {
-            parent
-                .spawn(NodeBundle {
-                    style: Style {
-                        flex_direction: FlexDirection::Column,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    background_color: CRIMSON.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    for (action, text) in [
-                        (MenuButtonAction::SettingsDisplay, "Display"),
-                        (MenuButtonAction::SettingsSound, "Sound"),
-                        (MenuButtonAction::BackToMainMenu, "Back"),
-                    ] {
-                        parent
-                            .spawn((
-                                ButtonBundle {
-                                    style: button_style.clone(),
-                                    background_color: NORMAL_BUTTON.into(),
-                                    ..default()
-                                },
-                                action,
-                            ))
-                            .with_children(|parent| {
-                                parent.spawn(TextBundle::from_section(
-                                    text,
-                                    button_text_style.clone(),
-                                ));
-                            });
-                    }
                 });
         });
 }
